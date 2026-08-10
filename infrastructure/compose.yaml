@@ -1,0 +1,35 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: java-hexagonal-template-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-payment_management}
+      MYSQL_USER: ${MYSQL_USER:-payment_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-payment_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      TZ: ${TZ:-America/Lima}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - hexagonal-network
+
+volumes:
+  mysql-data:
+    name: java-hexagonal-template-mysql-data
+
+networks:
+  hexagonal-network:
+    name: java-hexagonal-template-network

@@ -6,11 +6,9 @@ import com.poc.microservice.demo.domain.payment.Payment;
 import java.util.List;
 
 public interface PaymentMapper {
+    Payment toDomain(PaymentMySQLEntity entity);
 
-    public Payment toDomain(PaymentMySQLEntity paymentMySQLEntity);
+    PaymentMySQLEntity toEntity(Payment payment);
 
-    public PaymentMySQLEntity toEntity(Payment payment);
-
-    public List<Payment> toDomainList(List<PaymentMySQLEntity> paymentMySQLEntityList);
-
+    List<Payment> toDomainList(List<PaymentMySQLEntity> entities);
 }

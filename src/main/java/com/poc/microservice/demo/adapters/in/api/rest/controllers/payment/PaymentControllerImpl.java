@@ -1,50 +1,52 @@
 package com.poc.microservice.demo.adapters.in.api.rest.controllers.payment;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.poc.microservice.demo.adapters.in.api.rest.commons.CustomResponse;
 import com.poc.microservice.demo.adapters.in.api.rest.dtos.PaymentRequestDTO;
 import com.poc.microservice.demo.adapters.in.api.rest.mappers.PaymentMapper;
-import com.poc.microservice.demo.application.service.payment.PaymentService;
+import com.poc.microservice.demo.application.ports.in.payment.PaymentGetAllUseCase;
+import com.poc.microservice.demo.application.ports.in.payment.PaymentSaveUseCase;
 import com.poc.microservice.demo.domain.payment.Payment;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Slf4j
 @RestController
-@RequestMapping("payment_management")
-public class PaymentControllerImpl extends BaseController implements PaymentController{
+@RequestMapping("/payment-management/v1/payments")
+public class PaymentControllerImpl extends BaseController implements PaymentController {
 
-    public final PaymentService paymentService;
-    public final PaymentMapper paymentMapper;
+    private final PaymentGetAllUseCase paymentGetAllUseCase;
+    private final PaymentSaveUseCase paymentSaveUseCase;
+    private final PaymentMapper paymentMapper;
 
-    public PaymentControllerImpl(PaymentService paymentService, PaymentMapper paymentMapper) {
-        this.paymentService = paymentService;
+    public PaymentControllerImpl(
+            PaymentGetAllUseCase paymentGetAllUseCase,
+            PaymentSaveUseCase paymentSaveUseCase,
+            PaymentMapper paymentMapper
+    ) {
+        this.paymentGetAllUseCase = paymentGetAllUseCase;
+        this.paymentSaveUseCase = paymentSaveUseCase;
         this.paymentMapper = paymentMapper;
     }
 
     @Override
     public ResponseEntity<CustomResponse> findAll() {
         try {
-            List<Payment> payments = paymentService.getAll();
-            if (!payments.isEmpty()) return ok("Payment", "FindALL", payments);
-            else return ResponseEntity.noContent().build();
-        }catch (Exception e){
-            return internalError("Payment", "FindALL");
+            List<Payment> payments = paymentGetAllUseCase.getAll();
+            return payments.isEmpty() ? noContent() : ok("Payment", "FIND_ALL", paymentMapper.toResponseList(payments));
+        } catch (Exception exception) {
+            return internalError("Payment", "FIND_ALL");
         }
     }
 
     @Override
     public ResponseEntity<CustomResponse> save(PaymentRequestDTO paymentRequestDTO) {
-        Payment payment = paymentMapper.toDomain(paymentRequestDTO);
-
         try {
-            if (paymentService.save(payment)) return null;
-            else return ResponseEntity.badRequest().build();
-        }catch (Exception e){
+            Payment payment = paymentMapper.toDomain(paymentRequestDTO);
+            Payment savedPayment = paymentSaveUseCase.save(payment);
+            return created("Payment", "SAVE", paymentMapper.toResponse(savedPayment));
+        } catch (Exception exception) {
             return internalError("Payment", "SAVE");
         }
     }

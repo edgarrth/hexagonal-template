@@ -6,5 +6,5 @@ import com.poc.microservice.demo.domain.payment.Payment;
 @FunctionalInterface
 public interface PaymentSavePort {
 
-    Payment save(Payment payment) throws ApplicationException; //Have to change for specific exception
+    Payment save(Payment payment) throws ApplicationException;
 }

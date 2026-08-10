@@ -2,20 +2,19 @@ package com.poc.microservice.demo.domain.payment;
 
 import com.poc.microservice.demo.domain.base.Domain;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 public class Payment extends Domain {
-    // First Level Rules
 
     private String idTransaction;
     private String nombre;
-    private Double monto;
+    private BigDecimal monto;
+
     public Payment() {
         super();
     }
 
-    public Payment(String idTransaction, String nombre, Double monto) {
-        super();
+    public Payment(String idTransaction, String nombre, BigDecimal monto) {
         this.idTransaction = idTransaction;
         this.nombre = nombre;
         this.monto = monto;
@@ -37,11 +36,11 @@ public class Payment extends Domain {
         this.nombre = nombre;
     }
 
-    public Double getMonto() {
+    public BigDecimal getMonto() {
         return monto;
     }
 
-    public void setMonto(Double monto) {
+    public void setMonto(BigDecimal monto) {
         this.monto = monto;
     }
 }

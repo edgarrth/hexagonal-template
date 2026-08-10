@@ -1,19 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: micro-poc-deployment
+  name: java-hexagonal-template
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: micro-poc-app
-  replicas: 1
+      app: java-hexagonal-template
   template:
     metadata:
       labels:
-        app: micro-poc-app
+        app: java-hexagonal-template
     spec:
       containers:
-        - name: micro-poc
-          image: micro-poc:3
+        - name: app
+          image: java-hexagonal-template:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+          env:
+            - name: MYSQL_HOST
+              value: mysql
+            - name: MYSQL_DATABASE
+              value: payment_management

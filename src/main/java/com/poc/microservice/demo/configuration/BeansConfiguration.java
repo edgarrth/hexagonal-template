@@ -7,28 +7,27 @@ import com.poc.microservice.demo.adapters.out.mysql.springdata.repository.Paymen
 import com.poc.microservice.demo.application.ports.out.payment.PaymentGetAllPort;
 import com.poc.microservice.demo.application.ports.out.payment.PaymentSavePort;
 import com.poc.microservice.demo.application.service.payment.PaymentService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class BeansConfiguration {
 
-    @Primary
     @Bean
-    @Qualifier("paymentMySQLMapper")
-    PaymentMapper paymentMapper() {
+    PaymentMapper paymentMySQLMapper() {
         return new PaymentMapperImpl();
     }
 
     @Bean
-    PaymentMySQLAdapter paymentMySQLAdapter(PaymentMySQLRepository paymentMySQLRepository, PaymentMapper paymentMapper){
-        return new PaymentMySQLAdapter(paymentMySQLRepository, paymentMapper);
+    PaymentMySQLAdapter paymentMySQLAdapter(
+            PaymentMySQLRepository paymentMySQLRepository,
+            PaymentMapper paymentMySQLMapper
+    ) {
+        return new PaymentMySQLAdapter(paymentMySQLRepository, paymentMySQLMapper);
     }
 
     @Bean
-    PaymentService paymentService(PaymentGetAllPort paymentGetAllPort, PaymentSavePort paymentSavePort){
+    PaymentService paymentService(PaymentGetAllPort paymentGetAllPort, PaymentSavePort paymentSavePort) {
         return new PaymentService(paymentGetAllPort, paymentSavePort);
     }
 }

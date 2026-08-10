@@ -1,110 +1,173 @@
-# Hexagonal Template (Demo)
+# Hexagonal Template - Java 25
 
-Plantilla de microservicio Java con arquitectura hexagonal (Spring Boot, JPA, MySQL)
-Contiene una plantilla de microservicio basada en Spring Boot que sigue principios hexagonales (ports & adapters).
+Plantilla de microservicio con arquitectura hexagonal (ports & adapters), Java 25, Spring Boot 4.1 y persistencia JPA/MySQL.
 
-## Resumen
+## Stack
 
-Es una aplicación de ejemplo para la gestión de pagos con una capa de dominio, casos de uso (ports), adaptadores de entrada (API REST) y adaptadores de salida (persistencia). Está pensada como punto de partida para construir microservicios siguiendo la arquitectura hexagonal.
+- Java 25
+- Spring Boot 4.1.0
+- Spring Web MVC
+- Spring Data JPA
+- Jakarta Validation
+- MySQL Connector/J
+- H2 para tests
+- Maven 3.9+
+
+## Arquitectura
+
+```text
+adapters/in/api/rest
+        |
+        v
+application/ports/in
+        |
+        v
+application/service
+        |
+        v
+application/ports/out
+        |
+        v
+adapters/out/mysql/springdata
+        |
+        v
+domain
+```
+
+El dominio y los puertos no dependen de Spring. El wiring de implementaciones está centralizado en `BeansConfiguration`.
 
 ## Requisitos
 
-- JDK 17
-- Maven (puedes usar el wrapper incluido `./mvnw` o `mvn` instalado globalmente)
-- MySQL (la configuración por defecto usa una base de datos llamada `payment_management`)
+- JDK 25
+- Maven 3.9+
+- MySQL 8.x para ejecución normal
+- Docker/Docker Compose opcional
 
-Las dependencias principales están en `pom.xml` (Spring Boot 3.2.1, Spring Web, Spring Data JPA, MySQL connector, Lombok, etc.).
-
-## Configuración
-
-Archivo de propiedades: `src/main/resources/application.properties`
-
-Propiedades relevantes por defecto:
-
-- `spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:3306/payment_management` (usa la variable de entorno `MYSQL_HOST` si está definida)
-- `spring.datasource.username=root`
-- `spring.datasource.password=123456`
-- `spring.jpa.hibernate.ddl-auto=update`
-
-Nota: cambia estas propiedades para tu entorno (usuario/contraseña/host). Para producción no uses credenciales en texto plano.
-
-## Cómo compilar y ejecutar
-
-1. Construir el JAR:
+## Build y tests
 
 ```bash
-./mvnw -v   # opcional: verificar Maven
-./mvnw clean package
+mvn clean verify
 ```
 
-2. Ejecutar con Maven (modo desarrollo):
+Los tests usan H2 en memoria con perfil `test`, por lo que **no necesitan MySQL externo**. Incluyen:
+
+- carga del contexto Spring;
+- creación de un pago (`201`);
+- consulta de pagos (`200`);
+- consulta vacía (`204`);
+- rechazo de request inválido (`400`).
+
+## Ejecutar localmente
+
+La infraestructura local está en `infrastructure/`. Para levantar únicamente MySQL:
 
 ```bash
-./mvnw spring-boot:run
+docker compose -f infrastructure/compose.yaml up -d
 ```
 
-3. Ejecutar el JAR generado:
+Verifica que MySQL esté listo:
 
 ```bash
-java -jar target/demo-0.0.1-SNAPSHOT.jar
+docker compose -f infrastructure/compose.yaml ps
 ```
 
-4. Ejecutar tests:
+El servicio `mysql` debe aparecer como `healthy`. Luego ejecuta:
 
 ```bash
-./mvnw test
+mvn spring-boot:run
 ```
 
-En Windows (PowerShell o CMD) usa `mvnw.cmd` en lugar de `./mvnw` si prefieres.
+No es necesario configurar variables para el caso local: los valores por defecto de Spring coinciden con los de `infrastructure/compose.yaml`.
 
-## Endpoints (ejemplos)
+Configuración por variables de entorno:
 
-La implementación REST expone controladores bajo el prefijo `payment_management`.
+- `MYSQL_HOST` (default `localhost`)
+- `MYSQL_PORT` (default `3306`)
+- `MYSQL_DATABASE` (default `payment_management`)
+- `MYSQL_USER` (default `payment_user`)
+- `MYSQL_PASSWORD` (default `payment_password`)
+- `JPA_DDL_AUTO` (default `update`)
 
-- GET /payment_management/payment
-  - Devuelve todos los pagos (200 + payload) o 204 si no hay contenido.
+## API
 
-- POST /payment_management/payment
-  - Crea un pago. Body JSON esperado (según `PaymentRequestDTO`):
+Base path:
 
-```json
-{
-  "idTransaction": "abc-123",
-  "nombre": "Juan Perez",
-  "monto": 123.45
-}
+```text
+/payment-management/v1/payments
 ```
 
-Ejemplo con curl:
+### Crear pago
 
 ```bash
-curl -X POST "http://localhost:8080/payment_management/payment" \
+curl -X POST "http://localhost:8080/payment-management/v1/payments" \
   -H "Content-Type: application/json" \
-  -d '{"idTransaction":"abc-123","nombre":"Juan","monto":10.5}'
+  -d '{"idTransaction":"abc-123","nombre":"Juan Perez","monto":123.45}'
 ```
 
-## Estructura de carpetas
+Respuesta esperada: HTTP `201 Created`.
 
-Resumen de la estructura principal y propósito de cada paquete (ruta basada en `src/main/java`):
+### Listar pagos
 
-- `com.poc.microservice.demo` — paquete raíz
-  - `DemoApplication.java` — clase principal Spring Boot
-  - `configuration` — `BeansConfiguration.java` para definir beans/common wiring
-  - `adapters` — adaptadores (entrada/salida)
-    - `in` — adaptadores de entrada (API REST)
-      - `api`
-        - `rest`
-          - `commons` — clases compartidas para la API (por ejemplo `CustomResponse`)
-          - `controllers` — controladores REST
-            - `payment` — `PaymentController`, `PaymentControllerImpl`, `BaseController`
-          - `dtos` — DTOs de entrada/salida (`PaymentRequestDTO`)
-          - `mappers` — mapeadores DTO <-> dominio (`PaymentMapper`, `PaymentMapperImpl`)
-  - `application` — lógica de aplicación (casos de uso / puertos)
-    - `exceptions` — excepciones de la capa de aplicación
-    - `ports` — interfaces (in/out) que definen los casos de uso y puertos externos
-      - `in` — puertos de entrada (use cases) como `PaymentGetAllUseCase`, `PaymentSaveUseCase`
-      - `out` — puertos de salida (persistencia) — implementaciones en adaptadores de salida (no mostradas aquí)
-    - `service` — implementaciones de casos de uso (por ejemplo `PaymentService`)
-  - `domain` — entidades de dominio
-    - `base` — clases base del dominio (por ejemplo `Domain`)
-    - `payment` — entidad `Payment`
+```bash
+curl "http://localhost:8080/payment-management/v1/payments"
+```
+
+Devuelve `200 OK` con datos o `204 No Content` si no existen pagos.
+
+## Infraestructura
+
+La carpeta `infrastructure/` contiene:
+
+```text
+infrastructure/
+├── .env.example
+├── compose.yaml
+└── README.md
+```
+
+`infrastructure/compose.yaml` aprovisiona MySQL con:
+
+- base `payment_management`;
+- usuario de aplicación `payment_user`;
+- volumen persistente;
+- healthcheck;
+- red Docker dedicada;
+- creación automática de la base y del usuario mediante las variables soportadas por la imagen oficial de MySQL.
+
+Para personalizar credenciales, copia `infrastructure/.env.example` a `infrastructure/.env` y usa `--env-file infrastructure/.env`.
+
+## Docker full stack
+
+El `compose.yaml` de la raíz permite levantar aplicación + MySQL. Primero genera el JAR:
+
+```bash
+mvn clean package
+```
+
+Luego:
+
+```bash
+docker compose up --build
+```
+
+La aplicación espera a que MySQL pase su healthcheck antes de arrancar.
+
+## Cambios respecto al template original
+
+- Java 17 -> Java 25.
+- Spring Boot 3.2.1 -> Spring Boot 4.1.0.
+- MySQL driver migrado de `mysql:mysql-connector-java` a `com.mysql:mysql-connector-j`.
+- Eliminación de Lombok para reducir acoplamiento de compilación y annotation processing.
+- DTOs y response wrapper modernizados con `record`.
+- Separación de `PaymentRequestDTO` / `PaymentResponseDTO` para no exponer el dominio directamente por REST.
+- Tests desacoplados de MySQL mediante H2.
+- El controlador REST depende de puertos de entrada, no de la implementación `PaymentService`.
+- El `POST` ahora devuelve `201 Created` en lugar de `null`.
+- Persistencia corregida para conservar `idTransaction` y el ID generado por la base de datos.
+- `monto` migrado de `Double` a `BigDecimal` con precisión/escala en JPA.
+- `GenerationType.IDENTITY` para el ID de MySQL.
+- Validaciones de request agregadas.
+- Docker runtime actualizado a Java 25 y usuario no-root.
+- Nueva carpeta `infrastructure/` para aprovisionar MySQL local de forma reproducible.
+- Credenciales locales alineadas entre Spring y Docker, usando un usuario de aplicación no-root.
+- Healthcheck de MySQL para evitar que la aplicación arranque antes de que la base esté disponible.

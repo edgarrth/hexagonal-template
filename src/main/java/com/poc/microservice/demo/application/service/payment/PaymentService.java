@@ -6,15 +6,13 @@ import com.poc.microservice.demo.application.ports.in.payment.PaymentSaveUseCase
 import com.poc.microservice.demo.application.ports.out.payment.PaymentGetAllPort;
 import com.poc.microservice.demo.application.ports.out.payment.PaymentSavePort;
 import com.poc.microservice.demo.domain.payment.Payment;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-
 public class PaymentService implements PaymentSaveUseCase, PaymentGetAllUseCase {
 
-    public final PaymentGetAllPort paymentGetAllPort;
-    public final PaymentSavePort paymentSavePort;
+    private final PaymentGetAllPort paymentGetAllPort;
+    private final PaymentSavePort paymentSavePort;
 
     public PaymentService(PaymentGetAllPort paymentGetAllPort, PaymentSavePort paymentSavePort) {
         this.paymentGetAllPort = paymentGetAllPort;
@@ -27,7 +25,7 @@ public class PaymentService implements PaymentSaveUseCase, PaymentGetAllUseCase 
     }
 
     @Override
-    public Boolean save(Payment payment) throws ApplicationException {
-        return (paymentSavePort.save(payment)!=null?true:false);
+    public Payment save(Payment payment) throws ApplicationException {
+        return paymentSavePort.save(payment);
     }
 }

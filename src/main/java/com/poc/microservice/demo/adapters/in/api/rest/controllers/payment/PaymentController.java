@@ -2,19 +2,17 @@ package com.poc.microservice.demo.adapters.in.api.rest.controllers.payment;
 
 import com.poc.microservice.demo.adapters.in.api.rest.commons.CustomResponse;
 import com.poc.microservice.demo.adapters.in.api.rest.dtos.PaymentRequestDTO;
-//import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RequestBody;
 
 public interface PaymentController {
 
-    @GetMapping("/payment")
+    @GetMapping
     ResponseEntity<CustomResponse> findAll();
 
-    @PostMapping("/payment")
-    ResponseEntity<CustomResponse> save(@RequestBody PaymentRequestDTO paymentRequestDTO);
-
+    @PostMapping
+    ResponseEntity<CustomResponse> save(@Valid @RequestBody PaymentRequestDTO paymentRequestDTO);
 }
