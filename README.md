@@ -151,23 +151,3 @@ docker compose up --build
 ```
 
 La aplicación espera a que MySQL pase su healthcheck antes de arrancar.
-
-## Cambios respecto al template original
-
-- Java 17 -> Java 25.
-- Spring Boot 3.2.1 -> Spring Boot 4.1.0.
-- MySQL driver migrado de `mysql:mysql-connector-java` a `com.mysql:mysql-connector-j`.
-- Eliminación de Lombok para reducir acoplamiento de compilación y annotation processing.
-- DTOs y response wrapper modernizados con `record`.
-- Separación de `PaymentRequestDTO` / `PaymentResponseDTO` para no exponer el dominio directamente por REST.
-- Tests desacoplados de MySQL mediante H2.
-- El controlador REST depende de puertos de entrada, no de la implementación `PaymentService`.
-- El `POST` ahora devuelve `201 Created` en lugar de `null`.
-- Persistencia corregida para conservar `idTransaction` y el ID generado por la base de datos.
-- `monto` migrado de `Double` a `BigDecimal` con precisión/escala en JPA.
-- `GenerationType.IDENTITY` para el ID de MySQL.
-- Validaciones de request agregadas.
-- Docker runtime actualizado a Java 25 y usuario no-root.
-- Nueva carpeta `infrastructure/` para aprovisionar MySQL local de forma reproducible.
-- Credenciales locales alineadas entre Spring y Docker, usando un usuario de aplicación no-root.
-- Healthcheck de MySQL para evitar que la aplicación arranque antes de que la base esté disponible.
